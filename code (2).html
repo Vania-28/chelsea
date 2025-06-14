@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Jadwal Pembelajaran Interaktif</title>
+<style>
+  /* Import Inter font from Google Fonts */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+  /* Reset and base */
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: #f5f7fa;
+    color: #222;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  header {
+    background: linear-gradient(135deg, #4f46e5, #3b82f6);
+    color: white;
+    padding: 1rem 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  header h1 {
+    font-weight: 800;
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+  }
+  header .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+  }
+  header .user-profile img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid white;
+  }
+  header .user-profile span {
+    font-weight: 600;
+  }
+
+  main {
+    flex: 1;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 900px) {
+    main {
+      grid-template-columns: 1fr;
+      padding: 1.5rem;
+      gap: 2rem;
+    }
+  }
+
+  section {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  section h2 {
+    font-weight: 800;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #3b82f6;
+    border-bottom: 2px solid #93c5fd;
+    padding-bottom: 0.5rem;
+  }
+
+  /* Profile Section */
+  .profile-form label {
+    font-weight: 600;
+    margin-top: 1rem;
+  }
+  .profile-form input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    margin-top: 0.3rem;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.25s ease;
+  }
+  .profile-form input:focus {
+    border-color: #3b82f6;
+    outline: none;
+  }
+  .profile-save-btn {
+    margin-top: 1.5rem;
+    background: #3b82f6;
+    color: white;
+    padding: 0.75rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  .profile-save-btn:hover {
+    background: #2563eb;
+  }
+
+  /* Schedule Section */
+  .days-tabs {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #e0e7ff;
+  }
+  .days-tabs button {
+    flex: 1 0 auto;
+    background: transparent;
+    border: none;
+    padding: 0.4rem 1rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    color: #64748b;
+    transition: all 0.25s ease;
+    border-radius: 8px 8px 0 0;
+  }
+  .days-tabs button.active {
+    color: #1e40af;
+    border-color: #3b82f6;
+    background: #dbeafe;
+  }
+  .days-tabs button:focus-visible {
+    outline-offset: 4px;
+    outline: 3px solid #3b82f6;
+  }
+
+  /* Schedule list */
+  .schedule-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .schedule-item {
+    background: #e0e7ff;
+    border-radius: 12px;
+    padding: 1rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr 2.5rem;
+    align-items: center;
+    gap: 1rem;
+  }
+  .schedule-item input[type="time"] {
+    padding: 0.4rem 0.6rem;
+    border-radius: 8px;
+    border: 1.5px solid #a5b4fc;
+    font-size: 1rem;
+  }
+  .schedule-item .type-label {
+    font-weight: 700;
+    color: #1e40af;
+    user-select: none;
+  }
+  .schedule-item button.delete-btn {
+    background: transparent;
+    border: none;
+    color: #ef4444;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.2rem 0.3rem;
+    transition: color 0.3s ease;
+  }
+  .schedule-item button.delete-btn:hover {
+    color: #b91c1c;
+  }
+
+  /* Add new block form */
+  .add-block-form {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .add-block-form select,
+  .add-block-form input[type="time"] {
+    padding: 0.4rem 0.6rem;
+    border-radius: 8px;
+    border: 1.5px solid #cbd5e1;
+    font-size: 1rem;
+  }
+  .add-block-form button {
+    background: #3b82f6;
+    border: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    font-weight: 700;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  .add-block-form button:hover {
+    background: #2563eb;
+  }
+
+  /* Important Dates Section */
+  .important-dates-list {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+  .important-date-item {
+    background: #fef3c7;
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+  .important-date-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+  .important-date-title {
+    font-weight: 700;
+    color: #92400e;
+    font-size: 1.1rem;
+  }
+  .important-date-date {
+    font-size: 0.9rem;
+    color: #78350f;
+  }
+  .important-date-item button.delete-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.3rem;
+    color: #b45309;
+    cursor: pointer;
+    padding: 0.2rem 0.3rem;
+    transition: color 0.3s ease;
+  }
+  .important-date-item button.delete-btn:hover {
+    color: #78350f;
+  }
+
+  /* Add important date form */
+  .add-important-form {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .add-important-form input[type="text"],
+  .add-important-form input[type="date"] {
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: 1.5px solid #cbd5e1;
+  }
+  .add-important-form button {
+    align-self: flex-start;
+    background: #d97706;
+    color: white;
+    font-weight: 700;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  .add-important-form button:hover {
+    background: #b45309;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #3b82f6;
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #2563eb;
+  }
+
+  /* Accessibility focus outline */
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible {
+    outline-offset: 4px;
+    outline: 3px solid #3b82f6;
+  }
+
+</style>
+</head>
+<body>
+<header>
+  <h1>Jadwal Pembelajaran</h1>
+  <div class="user-profile" tabindex="0" aria-label="Profil pengguna">
+    <img id="profile-avatar" src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/9524d0e8-969d-4282-973d-754193226895.png" alt="Avatar pengguna" />
+    <span id="profile-name-display">Pengguna</span>
+  </div>
+</header>
+
+<main>
+  <section aria-labelledby="profile-title">
+    <h2 id="profile-title">Profil Pengguna</h2>
+    <form id="profile-form" class="profile-form" aria-describedby="profile-desc">
+      <div id="profile-desc" class="sr-only">Form untuk mengatur nama, email dan avatar pengguna</div>
+      <label for="profile-name">Nama</label>
+      <input type="text" id="profile-name" name="profile-name" placeholder="Masukkan nama Anda" autocomplete="name" required />
+      <label for="profile-email">Email</label>
+      <input type="email" id="profile-email" name="profile-email" placeholder="Masukkan email Anda" autocomplete="email" required />
+      <label for="profile-avatar-url">URL Avatar</label>
+      <input type="url" id="profile-avatar-url" name="profile-avatar-url" placeholder="https://..." aria-describedby="avatar-url-desc" />
+      <div id="avatar-url-desc" class="sr-only">URL gambar avatar, jika kosong menggunakan gambar default</div>
+      <button type="submit" class="profile-save-btn">Simpan Profil</button>
+    </form>
+  </section>
+
+  <section aria-labelledby="schedule-title">
+    <h2 id="schedule-title">Jadwal Pembelajaran</h2>
+    <nav class="days-tabs" role="tablist" aria-label="Pilihan hari dalam jadwal">
+      <button role="tab" aria-selected="true" aria-controls="schedule-mon" id="tab-mon">Senin</button>
+      <button role="tab" aria-selected="false" aria-controls="schedule-tue" id="tab-tue">Selasa</button>
+      <button role="tab" aria-selected="false" aria-controls="schedule-wed" id="tab-wed">Rabu</button>
+      <button role="tab" aria-selected="false" aria-controls="schedule-thu" id="tab-thu">Kamis</button>
+      <button role="tab" aria-selected="false" aria-controls="schedule-fri" id="tab-fri">Jumat</button>
+      <button role="tab" aria-selected="false" aria-controls="schedule-sat" id="tab-sat">Sabtu</button>
+      <button role="tab" aria-selected="false" aria-controls="schedule-sun" id="tab-sun">Minggu</button>
+    </nav>
+
+    <div id="schedule-container" tabindex="0" aria-live="polite" aria-atomic="true" style="outline:none;">
+      <!-- Schedule blocks will be injected dynamically here -->
+    </div>
+
+    <form id="add-block-form" class="add-block-form" aria-label="Form tambah jadwal pembelajaran atau istirahat">
+      <label for="block-type" class="sr-only">Jenis blok</label>
+      <select id="block-type" name="block-type" required aria-required="true" aria-label="Pilih jenis blok jadwal">
+        <option value="" disabled selected>Pilih jenis blok</option>
+        <option value="study">Belajar</option>
+        <option value="rest">Istirahat</option>
+      </select>
+
+      <label for="block-start" class="sr-only">Waktu mulai</label>
+      <input type="time" id="block-start" name="block-start" required aria-required="true" aria-label="Waktu mulai blok jadwal" />
+
+      <label for="block-end" class="sr-only">Waktu selesai</label>
+      <input type="time" id="block-end" name="block-end" required aria-required="true" aria-label="Waktu selesai blok jadwal" />
+
+      <button type="submit" aria-label="Tambah blok jadwal">Tambah</button>
+    </form>
+  </section>
+
+  <section aria-labelledby="important-dates-title">
+    <h2 id="important-dates-title">Tanggal Penting</h2>
+    <div class="important-dates-list" id="important-dates-list" role="list" aria-live="polite" aria-atomic="true">
+      <!-- Important dates displayed here -->
+    </div>
+
+    <form id="add-important-form" class="add-important-form" aria-label="Form tambah tanggal penting">
+      <label for="important-title" class="sr-only">Judul tanggal penting</label>
+      <input type="text" id="important-title" name="important-title" placeholder="Judul tanggal penting" required aria-required="true" />
+
+      <label for="important-date" class="sr-only">Tanggal</label>
+      <input type="date" id="important-date" name="important-date" required aria-required="true" />
+
+      <button type="submit" aria-label="Tambah tanggal penting">Tambah</button>
+    </form>
+  </section>
+</main>
+
+<script>
+  // Utility: Save and Load from localStorage
+  const STORAGE_KEYS = {
+    PROFILE: 'jadwal_pembelajaran_profile',
+    SCHEDULE: 'jadwal_pembelajaran_schedule',
+    IMPORTANT_DATES: 'jadwal_pembelajaran_important_dates'
+  };
+
+  // Default profile
+  const defaultProfile = {
+    name: '',
+    email: '',
+    avatarUrl: ''
+  };
+
+  // Days keys for schedule
+  const days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+  const dayNames = {
+    mon: 'Senin',
+    tue: 'Selasa',
+    wed: 'Rabu',
+    thu: 'Kamis',
+    fri: 'Jumat',
+    sat: 'Sabtu',
+    sun: 'Minggu'
+  };
+
+  // Selected day state
+  let selectedDay = 'mon';
+
+  // DOM Elements
+  const profileForm = document.getElementById('profile-form');
+  const profileNameInput = document.getElementById('profile-name');
+  const profileEmailInput = document.getElementById('profile-email');
+  const profileAvatarInput = document.getElementById('profile-avatar-url');
+  const profileNameDisplay = document.getElementById('profile-name-display');
+  const profileAvatarImg = document.getElementById('profile-avatar');
+
+  const daysTabs = document.querySelectorAll('.days-tabs button');
+  const scheduleContainer = document.getElementById('schedule-container');
+  const addBlockForm = document.getElementById('add-block-form');
+
+  const importantDatesList = document.getElementById('important-dates-list');
+  const addImportantForm = document.getElementById('add-important-form');
+  const importantTitleInput = document.getElementById('important-title');
+  const importantDateInput = document.getElementById('important-date');
+
+  // Load Profile from storage
+  function loadProfile() {
+    const stored = localStorage.getItem(STORAGE_KEYS.PROFILE);
+    if (stored) {
+      try {
+        const profile = JSON.parse(stored);
+        profileNameInput.value = profile.name || '';
+        profileEmailInput.value = profile.email || '';
+        profileAvatarInput.value = profile.avatarUrl || '';
+        updateProfileDisplay(profile);
+      } catch {
+        console.error('Gagal memuat profil pengguna.');
+      }
+    } else {
+      updateProfileDisplay(defaultProfile);
+    }
+  }
+
+  // Update profile display in header
+  function updateProfileDisplay(profile) {
+    profileNameDisplay.textContent = profile.name || 'Pengguna';
+    if (profile.avatarUrl && isValidUrl(profile.avatarUrl)) {
+      profileAvatarImg.src = profile.avatarUrl;
+    } else {
+      profileAvatarImg.src = 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/49eb7e2b-bbc7-43af-99bb-64acf32c399a.png';
+    }
+  }
+
+  // Validate URL (simple)
+  function isValidUrl(string) {
+    try {
+      new URL(string);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  // Save Profile event
+  profileForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const profile = {
+      name: profileNameInput.value.trim(),
+      email: profileEmailInput.value.trim(),
+      avatarUrl: profileAvatarInput.value.trim()
+    };
+    localStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(profile));
+    updateProfileDisplay(profile);
+    alert('Profil berhasil disimpan.');
+  });
+
+  // Load Schedule from storage or create empty
+  function loadSchedule() {
+    const stored = localStorage.getItem(STORAGE_KEYS.SCHEDULE);
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch {
+        console.error('Gagal memuat jadwal, menggunakan jadwal kosong.');
+      }
+    }
+    // Initialize empty schedule per day
+    const sched = {};
+    days.forEach(d => sched[d] = []);
+    return sched;
+  }
+
+  // Save Schedule to storage
+  function saveSchedule(schedule) {
+    localStorage.setItem(STORAGE_KEYS.SCHEDULE, JSON.stringify(schedule));
+  }
+
+  // Render schedule UI for selectedDay
+  function renderSchedule(schedule) {
+    const daySchedule = schedule[selectedDay] || [];
+    scheduleContainer.innerHTML = '';
+
+    if (daySchedule.length === 0) {
+      scheduleContainer.innerHTML = '<p style="color:#64748b;">Belum ada jadwal untuk hari ini. Tambahkan jadwal belajar atau istirahat.</p>';
+      return;
+    }
+
+    daySchedule.forEach((item, idx) => {
+      const itemDiv = document.createElement('div');
+      itemDiv.className = 'schedule-item';
+
+      // Type label
+      const typeLabel = document.createElement('div');
+      typeLabel.className = 'type-label';
+      typeLabel.textContent = item.type === 'study' ? 'Belajar' : 'Istirahat';
+      itemDiv.appendChild(typeLabel);
+
+      // Start time input
+      const startInput = document.createElement('input');
+      startInput.type = 'time';
+      startInput.value = item.start;
+      startInput.setAttribute('aria-label', `Waktu mulai blok ${typeLabel.textContent}`);
+      startInput.addEventListener('change', () => {
+        item.start = startInput.value;
+        sortAndSaveSchedule(schedule);
+      });
+      itemDiv.appendChild(startInput);
+
+      // End time input
+      const endInput = document.createElement('input');
+      endInput.type = 'time';
+      endInput.value = item.end;
+      endInput.setAttribute('aria-label', `Waktu selesai blok ${typeLabel.textContent}`);
+      endInput.addEventListener('change', () => {
+        item.end = endInput.value;
+        sortAndSaveSchedule(schedule);
+      });
+      itemDiv.appendChild(endInput);
+
+      // Delete button
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'delete-btn';
+      deleteBtn.setAttribute('aria-label', `Hapus blok jadwal ${typeLabel.textContent}`);
+      deleteBtn.innerHTML = '&times;';
+      deleteBtn.addEventListener('click', () => {
+        daySchedule.splice(idx, 1);
+        sortAndSaveSchedule(schedule);
+        renderSchedule(schedule);
+      });
+      itemDiv.appendChild(deleteBtn);
+
+      scheduleContainer.appendChild(itemDiv);
+    });
+  }
+
+  // Sort schedule blocks by start time and save
+  function sortAndSaveSchedule(schedule) {
+    days.forEach(day => {
+      schedule[day].sort((a,b) => a.start.localeCompare(b.start));
+    });
+    saveSchedule(schedule);
+  }
+
+  // Setup day tabs event
+  daysTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      daysTabs.forEach(t => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
+      selectedDay = tab.id.split('-')[1]; // e.g tab-mon => mon
+      loadAndRenderSchedule();
+    });
+  });
+
+  // Add block form submit event
+  addBlockForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const type = addBlockForm['block-type'].value;
+    const start = addBlockForm['block-start'].value;
+    const end = addBlockForm['block-end'].value;
+
+    if (!type || !start || !end) {
+      alert('Semua kolom harus diisi.');
+      return;
+    }
+    if (end <= start) {
+      alert('Waktu selesai harus setelah waktu mulai.');
+      return;
+    }
+
+    const schedule = loadSchedule();
+
+    // Check for overlapping with existing blocks
+    const overlaps = schedule[selectedDay].some(block => {
+      return (start < block.end) && (end > block.start);
+    });
+    if (overlaps) {
+      alert('Waktu blok bertabrakan dengan blok lain, silakan periksa kembali.');
+      return;
+    }
+
+    schedule[selectedDay].push({ type, start, end });
+    sortAndSaveSchedule(schedule);
+    renderSchedule(schedule);
+
+    // Reset form
+    addBlockForm.reset();
+    addBlockForm['block-type'].focus();
+  });
+
+  // Load and render schedule for selected day
+  function loadAndRenderSchedule() {
+    const schedule = loadSchedule();
+    renderSchedule(schedule);
+  }
+
+  // Initial select first tab and render
+  function selectInitialTab() {
+    daysTabs.forEach(t => {
+      t.classList.remove('active');
+      t.setAttribute('aria-selected', 'false');
+    });
+    const initialTab = document.getElementById('tab-' + selectedDay);
+    if (initialTab) {
+      initialTab.classList.add('active');
+      initialTab.setAttribute('aria-selected', 'true');
+    }
+  }
+
+  // --- Important Dates ---
+
+  // Load important dates array [{}]
+  function loadImportantDates() {
+    const stored = localStorage.getItem(STORAGE_KEYS.IMPORTANT_DATES);
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch {
+        console.error('Gagal memuat tanggal penting.');
+      }
+    }
+    return [];
+  }
+
+  // Save important dates
+  function saveImportantDates(dates) {
+    localStorage.setItem(STORAGE_KEYS.IMPORTANT_DATES, JSON.stringify(dates));
+  }
+
+  // Render important dates list
+  function renderImportantDates() {
+    const dates = loadImportantDates();
+    importantDatesList.innerHTML = '';
+
+    if (dates.length === 0) {
+      importantDatesList.innerHTML = '<p style="color:#92400e;">Belum ada tanggal penting. Tambahkan di bawah.</p>';
+      return;
+    }
+
+    dates.forEach((item, idx) => {
+      const itemDiv = document.createElement('div');
+      itemDiv.className = 'important-date-item';
+      itemDiv.setAttribute('role','listitem');
+
+      const infoDiv = document.createElement('div');
+      infoDiv.className = 'important-date-info';
+
+      const titleDiv = document.createElement('div');
+      titleDiv.className = 'important-date-title';
+      titleDiv.textContent = item.title;
+
+      const dateDiv = document.createElement('div');
+      dateDiv.className = 'important-date-date';
+      dateDiv.textContent = (new Date(item.date)).toLocaleDateString('id-ID', {year:'numeric', month:'long', day:'numeric'});
+
+      infoDiv.appendChild(titleDiv);
+      infoDiv.appendChild(dateDiv);
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'delete-btn';
+      deleteBtn.setAttribute('aria-label', `Hapus tanggal penting ${item.title}`);
+      deleteBtn.innerHTML = '&times;';
+      deleteBtn.addEventListener('click', () => {
+        dates.splice(idx, 1);
+        saveImportantDates(dates);
+        renderImportantDates();
+      });
+
+      itemDiv.appendChild(infoDiv);
+      itemDiv.appendChild(deleteBtn);
+
+      importantDatesList.appendChild(itemDiv);
+    });
+  }
+
+  // Add important date form submit
+  addImportantForm.addEventListener('submit', e => {
+    e.preventDefault();
+
+    const title = importantTitleInput.value.trim();
+    const date = importantDateInput.value;
+
+    if (!title || !date) {
+      alert('Semua kolom harus diisi.');
+      return;
+    }
+
+    const dates = loadImportantDates();
+
+    // Check duplicate date and title is allowed? We'll allow same dates but different titles.
+
+    dates.push({ title, date });
+    // Sort dates ascending
+    dates.sort((a,b) => (a.date > b.date) ? 1 : -1);
+    saveImportantDates(dates);
+    renderImportantDates();
+
+    // Reset form
+    addImportantForm.reset();
+    importantTitleInput.focus();
+  });
+
+  // On load init
+  window.addEventListener('DOMContentLoaded', () => {
+    // Load profile
+    loadProfile();
+
+    // Initial tab
+    selectInitialTab();
+
+    // Render schedule for initial day
+    loadAndRenderSchedule();
+
+    // Render important dates
+    renderImportantDates();
+  });
+</script>
+</body>
+</html>
+
